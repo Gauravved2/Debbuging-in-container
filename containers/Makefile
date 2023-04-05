@@ -24,8 +24,14 @@ copy-dlv-to-container:
 
 .PHONY: exec-dlv-basic-container
 exec-dlv-basic-container:
-	docker exec -it $(shell docker ps -aqf "ancestor=$(BASIC_IMG)") ./dlv attach 1
+	docker exec -it $(shell docker ps -aqf "ancestor=$(BASIC_IMG)") dlv attach 1
 
 .PHONY: run-basic-image-with-ptrace
 run-basic-image-with-ptrace: 
-	docker run -it --detach --rm -p 8080:8080 --cap-add=SYS_PTRACE $(BASIC_IMG)
+	docker run -it --detach --rm -p 8080:8080 --privileged --cap-add=SYS_PTRACE $(BASIC_IMG)
+
+.PHONY: exec-dlv-container-with-src 
+exec-dlv-container-with-src:
+	docker cp ./ $(shell docker ps -aqf "ancestor=$(BASIC_IMG)"):/src
+	docker cp D:/Go $(shell docker ps -aqf "ancestor=$(BASIC_IMG)"):/goroot
+	docker exec -it $(shell docker ps -aqf "ancestor=$(BASIC_IMG)") dlv --init=/src/hack/delve-container-initfile attach 1
